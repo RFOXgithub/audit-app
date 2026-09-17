@@ -1,0 +1,43 @@
+import type { Activity, AppState, Audit, Finding, InventoryItem, User } from "./types";
+
+export const users: User[] = [
+ {id:"u1",name:"Nadia Prameswari",email:"admin@auditflow.demo",role:"ADMIN",department:"Internal Audit",initials:"NP"},
+ {id:"u2",name:"Raka Mahendra",email:"auditor@auditflow.demo",role:"AUDITOR",department:"Internal Audit",initials:"RM"},
+ {id:"u3",name:"Dewi Anggraini",email:"manager@auditflow.demo",role:"MANAGER",department:"Internal Audit",initials:"DA"},
+ {id:"u4",name:"Bima Kurniawan",email:"pic@auditflow.demo",role:"AUDITEE",department:"Warehouse",initials:"BK"},
+ {id:"u5",name:"Sari Wulandari",email:"sari@auditflow.demo",role:"AUDITOR",department:"Internal Audit",initials:"SW"},
+ {id:"u6",name:"Arif Nugroho",email:"arif@auditflow.demo",role:"AUDITEE",department:"Procurement",initials:"AN"},
+ {id:"u7",name:"Maya Putri",email:"maya@auditflow.demo",role:"AUDITEE",department:"Finance",initials:"MP"},
+ {id:"u8",name:"Fajar Hidayat",email:"fajar@auditflow.demo",role:"AUDITOR",department:"Internal Audit",initials:"FH"},
+ {id:"u9",name:"Intan Permata",email:"intan@auditflow.demo",role:"AUDITEE",department:"Information Technology",initials:"IP"},
+ {id:"u10",name:"Yoga Pratama",email:"yoga@auditflow.demo",role:"AUDITEE",department:"Operations",initials:"YP"}
+];
+export const departments=["Finance","Information Technology","Procurement","Warehouse","Human Resources","Operations","Sales","General Affairs"];
+const audits:Audit[]=[
+ {id:"AUD-2026-001",title:"Inventory Accuracy & Warehouse Controls",type:"Operational",department:"Warehouse",lead:"Raka Mahendra",start:"2026-09-01",end:"2026-09-30",risk:"High",status:"In Progress",progress:68,scope:"Raw materials, finished goods, cycle counts, and warehouse access controls.",objectives:"Validate inventory accuracy and effectiveness of safeguarding controls.",findings:7},
+ {id:"AUD-2026-002",title:"Procure-to-Pay Compliance Review",type:"Compliance",department:"Procurement",lead:"Sari Wulandari",start:"2026-08-10",end:"2026-09-18",risk:"Critical",status:"Review",progress:92,scope:"Vendor onboarding through invoice settlement.",objectives:"Assess approval, segregation of duties, and vendor controls.",findings:6},
+ {id:"AUD-2026-003",title:"IT General Controls Assessment",type:"Technology",department:"Information Technology",lead:"Fajar Hidayat",start:"2026-09-12",end:"2026-10-18",risk:"High",status:"In Progress",progress:34,scope:"Access, change, backup, and incident management.",objectives:"Evaluate design and operation of core IT controls.",findings:4},
+ {id:"AUD-2026-004",title:"Cash Management & Treasury",type:"Financial",department:"Finance",lead:"Raka Mahendra",start:"2026-06-01",end:"2026-07-15",risk:"Medium",status:"Completed",progress:100,scope:"Bank reconciliation, cash forecasts, and payment authorization.",objectives:"Confirm cash controls and reporting integrity.",findings:5},
+ {id:"AUD-2026-005",title:"Employee Lifecycle Controls",type:"Compliance",department:"Human Resources",lead:"Sari Wulandari",start:"2026-10-05",end:"2026-11-02",risk:"Medium",status:"Planned",progress:0,scope:"Hiring, payroll changes, transfers, and termination.",objectives:"Evaluate authorization and timely access removal.",findings:0},
+ {id:"AUD-2026-006",title:"Sales Discount Governance",type:"Operational",department:"Sales",lead:"Fajar Hidayat",start:"2026-05-04",end:"2026-06-05",risk:"Low",status:"Completed",progress:100,scope:"Discount approvals and master data.",objectives:"Test policy compliance and margin protection.",findings:3},
+ {id:"AUD-2026-007",title:"Fleet & Fuel Cost Review",type:"Operational",department:"Operations",lead:"Raka Mahendra",start:"2026-08-24",end:"2026-10-02",risk:"High",status:"In Progress",progress:51,scope:"Fleet utilization, maintenance, and fuel cards.",objectives:"Identify leakage and improve asset utilization.",findings:5},
+ {id:"AUD-2026-008",title:"Facility Vendor Governance",type:"Compliance",department:"General Affairs",lead:"Sari Wulandari",start:"2026-11-01",end:"2026-11-28",risk:"Low",status:"Draft",progress:0,scope:"Facility service vendors and contract monitoring.",objectives:"Review service delivery and purchasing compliance.",findings:0},
+ {id:"AUD-2026-009",title:"Revenue Recognition Controls",type:"Financial",department:"Finance",lead:"Fajar Hidayat",start:"2026-07-08",end:"2026-08-14",risk:"Critical",status:"Completed",progress:100,scope:"Order-to-cash and month-end recognition.",objectives:"Validate completeness and cutoff.",findings:4},
+ {id:"AUD-2026-010",title:"Data Privacy Readiness",type:"Technology",department:"Information Technology",lead:"Raka Mahendra",start:"2026-10-12",end:"2026-11-20",risk:"High",status:"Planned",progress:0,scope:"Personal data inventory and protection controls.",objectives:"Assess privacy governance maturity.",findings:0}
+];
+const titles=["Unreconciled stock variance","Dormant user accounts remain active","Purchase orders approved after commitment","Missing supplier due diligence","Cycle counts not performed on schedule","Unsupported manual journal entries","Shared privileged administrator account","Late employee access termination","Fuel card exception not investigated","Discount exceeds approved threshold","Goods receipt lacks quality sign-off","Backup restoration test overdue"];
+const dept=["Warehouse","Information Technology","Procurement","Procurement","Warehouse","Finance","Information Technology","Human Resources","Operations","Sales","Warehouse","Information Technology"];
+const sev=["Critical","High","High","Medium","Medium","Critical","High","High","Medium","Medium","Low","High"] as const;
+const statuses=["Waiting Verification","Open","Corrective Action","Investigation","Closed","Open","Corrective Action","Verified","Open","Closed","Closed","Investigation"] as const;
+const findings:Finding[]=Array.from({length:38},(_,i)=>({id:`AUD-FND-${String(i+1).padStart(4,"0")}`,auditId:audits[i%9].id,title:titles[i%titles.length]+(i>=12?` — sample ${Math.floor(i/12)+1}`:""),department:dept[i%dept.length],category:["Inventory","Access Control","Procurement","Finance","Governance"][i%5],severity:sev[i%sev.length],status:statuses[i%statuses.length],pic:["Bima Kurniawan","Arif Nugroho","Maya Putri","Intan Permata","Yoga Pratama"][i%5],findingDate:`2026-${String(5+(i%5)).padStart(2,"0")}-${String(2+(i%24)).padStart(2,"0")}`,dueDate:`2026-${String(8+(i%3)).padStart(2,"0")}-${String(3+(i%24)).padStart(2,"0")}`,impact:(i+1)*2750000,description:"Control testing identified a gap between the documented procedure and operating practice. The exception was validated with the process owner.",rootCause:"Monitoring evidence and ownership were not consistently defined.",recommendation:"Assign a control owner, document monthly review evidence, and escalate unresolved exceptions.",correctiveAction:i%3===0?"Perform reconciliation, investigate aged differences, and add monthly supervisor sign-off.":undefined,completion:i%3===0?75:0}));
+const productNames=["Industrial Bearing 6205","Hydraulic Oil ISO 46","Safety Gloves Nitrile","Drive Belt A-52","Stainless Bolt M12","Packaging Film 50μ","Electric Motor 3-Phase","Pallet Wooden Standard","Welding Electrode E6013","Pressure Gauge 10 Bar"];
+const inventory:InventoryItem[]=Array.from({length:30},(_,i)=>{const systemQty=100+(i*73)%1900;const variance=i%4===0?-(10+i*2):i%6===0?15:0;return{id:`inv-${i+1}`,auditId:"AUD-2026-001",code:`WH-${String(i+1).padStart(4,"0")}`,name:productNames[i%10],systemQty,physicalQty:systemQty+variance,unitPrice:50000+(i%8)*75000,status:variance===0?"Matched":"Discrepancy",notes:variance===0?"Count verified":"Recount confirmed by warehouse supervisor"}});
+const activities:Activity[]=[
+ {id:"a1",action:"Corrective action submitted",entity:"Finding",entityId:"AUD-FND-0001",user:"Bima Kurniawan",at:"2026-09-17T09:32:00",detail:"Submitted for auditor verification"},
+ {id:"a2",action:"Evidence uploaded",entity:"Evidence",entityId:"EVD-0138",user:"Arif Nugroho",at:"2026-09-17T08:15:00",detail:"Supplier screening register.xlsx"},
+ {id:"a3",action:"Finding severity changed",entity:"Finding",entityId:"AUD-FND-0006",user:"Raka Mahendra",at:"2026-09-16T15:42:00",detail:"High → Critical"},
+ {id:"a4",action:"Audit submitted for review",entity:"Audit",entityId:"AUD-2026-002",user:"Sari Wulandari",at:"2026-09-16T13:10:00",detail:"Fieldwork completed"},
+ {id:"a5",action:"Finding verified",entity:"Finding",entityId:"AUD-FND-0008",user:"Fajar Hidayat",at:"2026-09-15T16:05:00",detail:"Remediation evidence accepted"}
+];
+export const initialState:AppState={audits,findings,inventory,activities};
+export const demoPassword="AuditFlow2026!";

@@ -1,0 +1,296 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+enum RoleName {
+  ADMIN
+  AUDITOR
+  MANAGER
+  AUDITEE
+}
+enum RiskLevel {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+enum AuditStatus {
+  DRAFT
+  PLANNED
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+enum FindingStatus {
+  OPEN
+  INVESTIGATION
+  CORRECTIVE_ACTION
+  WAITING_VERIFICATION
+  VERIFIED
+  CLOSED
+}
+enum ChecklistResult {
+  COMPLIANT
+  PARTIALLY_COMPLIANT
+  NON_COMPLIANT
+  NOT_APPLICABLE
+}
+enum ActionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  NEED_REVISION
+  VERIFIED
+  COMPLETED
+}
+model Role {
+  id String @id @default(uuid()) @db.Uuid
+  name RoleName @unique
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  email String @unique
+  passwordHash String
+  roleId String @db.Uuid
+  role Role @relation(fields: [roleId], references: [id])
+  departmentId String? @db.Uuid
+  department Department? @relation(fields: [departmentId], references: [id])
+  active Boolean @default(true)
+  ledAudits Audit[] @relation("LeadAuditor")
+  teamMemberships AuditTeam[]
+  assignedFindings Finding[] @relation("FindingPIC")
+  createdFindings Finding[] @relation("FindingCreator")
+  actions CorrectiveAction[]
+  evidence Evidence[]
+  activities ActivityLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([roleId])
+  @@index([departmentId])
+}
+model Department {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  code String @unique
+  users User[]
+  plans AuditPlan[]
+  audits Audit[]
+  findings Finding[]
+  inventoryAudits InventoryAudit[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model AuditPlan {
+  id String @id @default(uuid()) @db.Uuid
+  planCode String @unique
+  title String
+  auditType String
+  departmentId String @db.Uuid
+  department Department @relation(fields: [departmentId], references: [id])
+  scope String
+  objectives String
+  periodStart DateTime
+  periodEnd DateTime
+  startDate DateTime
+  endDate DateTime
+  riskLevel RiskLevel
+  status AuditStatus @default(DRAFT)
+  description String?
+  audits Audit[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status])
+  @@index([departmentId])
+}
+model Audit {
+  id String @id @default(uuid()) @db.Uuid
+  auditCode String @unique
+  title String
+  auditType String
+  departmentId String @db.Uuid
+  department Department @relation(fields: [departmentId], references: [id])
+  planId String? @db.Uuid
+  plan AuditPlan? @relation(fields: [planId], references: [id])
+  leadAuditorId String @db.Uuid
+  leadAuditor User @relation("LeadAuditor", fields: [leadAuditorId], references: [id])
+  scope String
+  objectives String
+  periodStart DateTime
+  periodEnd DateTime
+  startDate DateTime
+  endDate DateTime
+  riskLevel RiskLevel
+  status AuditStatus @default(DRAFT)
+  description String?
+  progress Int @default(0)
+  teams AuditTeam[]
+  checklist AuditChecklist[]
+  findings Finding[]
+  evidence Evidence[]
+  inventoryAudits InventoryAudit[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status])
+  @@index([departmentId])
+  @@index([leadAuditorId])
+}
+model AuditTeam {
+  id String @id @default(uuid()) @db.Uuid
+  auditId String @db.Uuid
+  userId String @db.Uuid
+  role String
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  @@unique([auditId, userId])
+  @@index([userId])
+}
+model AuditChecklist {
+  id String @id @default(uuid()) @db.Uuid
+  checklistCode String @unique
+  auditId String @db.Uuid
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  category String
+  controlObjective String
+  auditProcedure String
+  expectedResult String
+  actualResult String?
+  auditorNotes String?
+  result ChecklistResult?
+  findings Finding[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([auditId])
+  @@index([result])
+}
+model Finding {
+  id String @id @default(uuid()) @db.Uuid
+  findingCode String @unique
+  auditId String @db.Uuid
+  audit Audit @relation(fields: [auditId], references: [id])
+  checklistId String? @db.Uuid
+  checklist AuditChecklist? @relation(fields: [checklistId], references: [id])
+  title String
+  description String
+  departmentId String @db.Uuid
+  department Department @relation(fields: [departmentId], references: [id])
+  category String
+  rootCause String
+  riskImpact String
+  recommendation String
+  severity RiskLevel
+  financialImpact Decimal @default(0) @db.Decimal(18, 2)
+  picId String? @db.Uuid
+  pic User? @relation("FindingPIC", fields: [picId], references: [id])
+  createdById String @db.Uuid
+  createdBy User @relation("FindingCreator", fields: [createdById], references: [id])
+  findingDate DateTime
+  dueDate DateTime
+  status FindingStatus @default(OPEN)
+  correctiveActions CorrectiveAction[]
+  evidence Evidence[]
+  inventoryItems InventoryAuditItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([auditId])
+  @@index([departmentId])
+  @@index([picId])
+  @@index([severity])
+  @@index([status])
+  @@index([dueDate])
+}
+model CorrectiveAction {
+  id String @id @default(uuid()) @db.Uuid
+  findingId String @db.Uuid
+  finding Finding @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  action String
+  rootCauseResponse String
+  actionPlan String
+  picId String @db.Uuid
+  pic User @relation(fields: [picId], references: [id])
+  targetDate DateTime
+  completionPercentage Int @default(0)
+  status ActionStatus @default(NOT_STARTED)
+  notes String?
+  evidence Evidence[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([findingId])
+  @@index([picId])
+  @@index([status])
+  @@index([targetDate])
+}
+model Evidence {
+  id String @id @default(uuid()) @db.Uuid
+  fileName String
+  fileType String
+  fileSize Int
+  storageKey String
+  description String?
+  uploadedById String @db.Uuid
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+  auditId String? @db.Uuid
+  audit Audit? @relation(fields: [auditId], references: [id])
+  findingId String? @db.Uuid
+  finding Finding? @relation(fields: [findingId], references: [id])
+  correctiveActionId String? @db.Uuid
+  correctiveAction CorrectiveAction? @relation(fields: [correctiveActionId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([auditId])
+  @@index([findingId])
+}
+model InventoryAudit {
+  id String @id @default(uuid()) @db.Uuid
+  auditId String @db.Uuid
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  departmentId String @db.Uuid
+  department Department @relation(fields: [departmentId], references: [id])
+  countDate DateTime
+  status String
+  items InventoryAuditItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([auditId])
+  @@index([departmentId])
+}
+model InventoryAuditItem {
+  id String @id @default(uuid()) @db.Uuid
+  inventoryAuditId String @db.Uuid
+  inventoryAudit InventoryAudit @relation(fields: [inventoryAuditId], references: [id], onDelete: Cascade)
+  itemCode String
+  itemName String
+  systemQuantity Decimal @db.Decimal(18, 3)
+  physicalQuantity Decimal @db.Decimal(18, 3)
+  unitPrice Decimal @db.Decimal(18, 2)
+  verificationStatus String
+  auditorNotes String?
+  findingId String? @db.Uuid
+  finding Finding? @relation(fields: [findingId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([inventoryAuditId, itemCode])
+  @@index([findingId])
+}
+model ActivityLog {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  action String
+  entity String
+  entityId String
+  previousValue Json?
+  newValue Json?
+  createdAt DateTime @default(now())
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}

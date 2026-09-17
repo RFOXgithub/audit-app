@@ -1,0 +1,2 @@
+export function SeverityBadge({value}:{value:string}){return <span className={`badge ${value.toLowerCase()}`}><span aria-hidden>{value==="Critical"?"◆":value==="High"?"▲":value==="Medium"?"●":"■"}</span>{value}</span>}
+export function StatusBadge({value}:{value:string}){const c=value.toLowerCase().replaceAll(" ","");return <span className={`badge ${c.includes("closed")||c.includes("completed")?"closed":c.includes("verified")?"verified":c.includes("waiting")?"waiting":c.includes("progress")?"progress":c.includes("open")?"open":"draft"}`}>{value}</span>}
