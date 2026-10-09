@@ -4,3 +4,21 @@ node_modules
 .env.local
 generated
 *.log
+
+# Build / cache artifacts
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Agent skills (not needed to build the project)
+.agents/
+skills/
+skills-lock.json
+.claude/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
